@@ -27,6 +27,12 @@ function App() {
       <div className="app">
         <div className="stars"></div>
         <div className="stars-layer"></div>
+        <div className="cosmic-dust"></div>
+        <div className="mystical-orb-1"></div>
+        <div className="mystical-orb-2"></div>
+        <div className="mystical-orb-3"></div>
+        <div className="energy-wave-1"></div>
+        <div className="energy-wave-2"></div>
         <Navigation />
         <main className="main-content">
           <Routes>

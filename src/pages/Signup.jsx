@@ -1,7 +1,6 @@
-// filepath: src/pages/Signup.jsx
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import '../App.css';
 
 const Signup = () => {
@@ -12,11 +11,22 @@ const Signup = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+    
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      setLoading(false);
       return;
     }
 
@@ -32,6 +42,8 @@ const Signup = () => {
       navigate('/login'); // Redirect to login page after signup
     } catch (error) {
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,35 +56,62 @@ const Signup = () => {
 
   return (
     <div className="auth-container">
-      <h2>Sign Up</h2>
-      {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit} className="auth-form">
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="confirmPassword"
-          placeholder="Confirm Password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit">Sign Up</button>
-      </form>
+      <div className="stars"></div>
+      <div className="content">
+        <h2>✨ Join the Cosmic Journey</h2>
+        <p style={{ 
+          color: 'var(--muted-text)', 
+          marginBottom: '2rem',
+          fontSize: '1rem'
+        }}>
+          Create your account to unlock the mysteries of the stars
+        </p>
+        
+        {error && <div className="error">{error}</div>}
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            disabled={loading}
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Create a password (min 6 characters)"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            disabled={loading}
+            minLength={6}
+          />
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm your password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+            disabled={loading}
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? '🌟 Creating Account...' : '🔮 Create Account'}
+          </button>
+        </form>
+        
+        <div className="auth-links">
+          <p style={{ color: 'var(--muted-text)', margin: 0 }}>
+            Already have an account? 
+          </p>
+          <Link to="/login" className="auth-link">
+            Sign in to your cosmic profile
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };

@@ -125,24 +125,33 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
         .chart-display {
           margin-top: 2rem;
           padding: 1.5rem;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 12px;
-          color: white;
+          background: linear-gradient(135deg, 
+            rgba(250, 251, 252, 0.9), 
+            rgba(253, 246, 227, 0.9)
+          );
+          backdrop-filter: blur(15px);
+          border-radius: 16px;
+          box-shadow: 0 8px 30px rgba(243, 156, 18, 0.12), 
+                      0 0 20px rgba(230, 126, 34, 0.08);
+          border: 2px solid var(--accent-gold);
+          color: var(--text-primary);
         }
 
         .chart-header h2 {
           margin: 0 0 1rem 0;
           text-align: center;
           font-size: 1.8rem;
-          text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          text-shadow: 0 1px 3px rgba(243, 156, 18, 0.2);
+          color: var(--text-primary);
         }
 
         .birth-info {
-          background: rgba(255,255,255,0.1);
+          background: rgba(250, 251, 252, 0.8);
           padding: 1rem;
           border-radius: 8px;
           margin-bottom: 1.5rem;
           backdrop-filter: blur(10px);
+          border: 1px solid var(--accent-gold);
         }
 
         .info-grid {
@@ -159,7 +168,7 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
 
         .info-item label {
           font-weight: 600;
-          opacity: 0.9;
+          color: var(--text-primary);
         }
 
         .chart-container {
@@ -192,17 +201,18 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
         }
 
         .chart-details {
-          background: rgba(255,255,255,0.1);
+          background: rgba(250, 251, 252, 0.8);
           padding: 1rem;
           border-radius: 8px;
           margin-top: 2rem;
           backdrop-filter: blur(10px);
+          border: 1px solid var(--accent-gold);
           clear: both;
         }
 
         .chart-details h3, .chart-details h4 {
           margin: 0 0 1rem 0;
-          color: white;
+          color: var(--text-primary);
         }
 
         .details-grid {
@@ -214,7 +224,7 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
           display: flex;
           justify-content: space-between;
           padding: 0.5rem 0;
-          border-bottom: 1px solid rgba(255,255,255,0.2);
+          border-bottom: 1px solid var(--accent-gold);
         }
 
         .planets-list {
@@ -227,8 +237,9 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
           display: flex;
           justify-content: space-between;
           padding: 0.25rem 0.5rem;
-          background: rgba(255,255,255,0.1);
+          background: rgba(250, 251, 252, 0.6);
           border-radius: 4px;
+          border: 1px solid var(--accent-gold);
         }
 
         .planet-name {
