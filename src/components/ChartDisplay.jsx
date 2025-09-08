@@ -47,33 +47,6 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
     <div className={`chart-display ${className}`}>
       <div className="chart-header">
         <h2>Your Vedic Birth Chart</h2>
-        
-        {birthInfo && (
-          <div className="birth-info">
-            <div className="info-grid">
-              <div className="info-item">
-                <label>Name:</label>
-                <span>{birthInfo.name}</span>
-              </div>
-              <div className="info-item">
-                <label>Date:</label>
-                <span>{new Date(birthInfo.date).toLocaleDateString()}</span>
-              </div>
-              <div className="info-item">
-                <label>Time:</label>
-                <span>{birthInfo.time}</span>
-              </div>
-              <div className="info-item">
-                <label>Location:</label>
-                <span>{birthInfo.location}</span>
-              </div>
-              <div className="info-item">
-                <label>Coordinates:</label>
-                <span>{birthInfo.coordinates?.lat.toFixed(4)}°, {birthInfo.coordinates?.lng.toFixed(4)}°</span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {chartError ? (
@@ -121,6 +94,34 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
         </div>
       )}
 
+      {/* Birth info moved below charts per UI request */}
+      {birthInfo && (
+        <div className="birth-info">
+          <div className="info-grid">
+            <div className="info-item">
+              <label>Name:</label>
+              <span>{birthInfo.name}</span>
+            </div>
+            <div className="info-item">
+              <label>Date:</label>
+              <span>{new Date(birthInfo.date).toLocaleDateString()}</span>
+            </div>
+            <div className="info-item">
+              <label>Time:</label>
+              <span>{birthInfo.time}</span>
+            </div>
+            <div className="info-item">
+              <label>Location:</label>
+              <span>{birthInfo.location}</span>
+            </div>
+            <div className="info-item">
+              <label>Coordinates:</label>
+              <span>{birthInfo.coordinates?.lat.toFixed(4)}°, {birthInfo.coordinates?.lng.toFixed(4)}°</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .chart-display {
           margin-top: 2rem;
@@ -139,7 +140,7 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
 
         .chart-header h2 {
           margin: 0 0 1rem 0;
-          text-align: center;
+          text-align: left;
           font-size: 1.8rem;
           text-shadow: 0 1px 3px rgba(243, 156, 18, 0.2);
           color: var(--text-primary);
@@ -185,7 +186,7 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
 
         .chart-canvas {
           width: 100%;
-          min-height: 800px;
+          min-height: 700px;
           max-width: 100%;
           overflow: hidden;
           box-sizing: border-box;

@@ -12,22 +12,22 @@ const defaultChartConfig = {
   CHART_PADDING: 20,
   
   // Colors
-  COLOR_BACKGROUND: '#ffffff',
-  COLOR_AXIS: '#333333',
-  COLOR_SIGNS: '#666666',
+  COLOR_BACKGROUND: '#fcf1da',
+  COLOR_AXIS: '#e08a1e',
+  COLOR_SIGNS: '#a8732a',
   COLOR_ASPECTS: '#cccccc',
   
   // Planet colors (traditional Vedic colors)
   PLANET_COLORS: {
-    'Sun': '#ff6b35',      // Orange-red
-    'Moon': '#4a90e2',     // Blue
+    'Sun': '#18a2b8',      // Teal-like as screenshot
+    'Moon': '#315bff',     // Blue
     'Mars': '#e74c3c',     // Red
     'Mercury': '#2ecc71',  // Green
-    'Jupiter': '#f39c12',  // Yellow-orange
-    'Venus': '#9b59b6',    // Purple
-    'Saturn': '#34495e',   // Dark blue-gray
-    'Rahu': '#8e44ad',     // Dark purple
-    'Ketu': '#95a5a6'      // Gray
+    'Jupiter': '#9b59b6',  // Purple
+    'Venus': '#8a4b2a',    // Brown
+    'Saturn': '#6f3c86',   // Violet
+    'Rahu': '#2e7d32',     // Dark green
+    'Ketu': '#2e7d32'      // Dark green
   },
   
   // House system
@@ -77,12 +77,37 @@ const signNames = {
   9: 'Sagittarius', 10: 'Capricorn', 11: 'Aquarius', 12: 'Pisces'
 };
 
+// Tamil sign names
+const signNamesTa = {
+  1: 'மேஷ', 2: 'ரிஷப', 3: 'மிதுன', 4: 'கடக',
+  5: 'சிம்ம', 6: 'கன்னி', 7: 'துலா', 8: 'விருச்சிக',
+  9: 'தனுசு', 10: 'மகர', 11: 'கும்ப', 12: 'மீன'
+};
+
 /**
  * Get sign name by number
  */
 const getSignName = (signNumber) => {
   return signNames[signNumber] || 'Unknown';
 };
+
+const getSignNameTa = (signNumber) => {
+  return signNamesTa[signNumber] || '';
+};
+
+// Short labels per locale
+const planetShortLabelsEn = {
+  Sun: 'Sun', Moon: 'Moo', Mars: 'Mar', Mercury: 'Mer',
+  Jupiter: 'Jup', Venus: 'Ven', Saturn: 'Sat', Rahu: 'Rah', Ketu: 'Ket', ASC: 'Lag'
+};
+
+const planetShortLabelsTa = {
+  Sun: 'சூ', Moon: 'சந்', Mars: 'செ', Mercury: 'பு',
+  Jupiter: 'கு', Venus: 'சு', Saturn: 'சனி', Rahu: 'ரா', Ketu: 'கே', ASC: 'ல'
+};
+
+// Optional Tamil translations for header
+const rasiChartTitle = { en: 'Rasi Chart', ta: 'ராசி கட்டம்' };
 
 /**
  * Map planet names from jyotish-calculations to AstroChart format
@@ -136,11 +161,16 @@ export const renderChart = (containerId, birthChartData, customConfig = {}) => {
 
     // Create container for both charts
     const chartsContainer = document.createElement('div');
+    // Determine available width and responsive layout
+    const containerWidth = container.clientWidth || 600;
+    const isWide = containerWidth >= 900;
     chartsContainer.style.cssText = `
       display: flex;
-      flex-direction: column;
+      flex-direction: ${isWide ? 'row' : 'column'};
+      flex-wrap: ${isWide ? 'nowrap' : 'wrap'};
       gap: 30px;
-      align-items: center;
+      align-items: flex-start;
+      justify-content: center;
       padding: 15px;
       margin-bottom: 30px;
       width: 100%;
@@ -149,42 +179,70 @@ export const renderChart = (containerId, birthChartData, customConfig = {}) => {
       overflow: hidden;
     `;
 
-    // Chart dimensions - responsive to container size
-    const containerWidth = container.clientWidth || 600;
-    const chartWidth = Math.min(containerWidth * 0.8, 350); // 80% of container width, max 350px
-    const chartHeight = chartWidth;
+    // Chart dimensions - responsive and with South larger than North
+    const southWidth = isWide
+      ? Math.min(containerWidth * 0.6, 560)
+      : Math.min(containerWidth * 0.95, 560);
+    const southHeight = southWidth;
 
-    // Create North Indian Chart
+    const northWidth = isWide
+      ? Math.min(containerWidth * 0.35, 380)
+      : Math.min(containerWidth * 0.9, 380);
+    const northHeight = northWidth;
+
+    // SOUTH INDIAN (English)
+    const southWrapperEn = document.createElement('div');
+    southWrapperEn.style.cssText = 'display:flex; flex-direction:column; align-items:center;';
+    const southTitleEn = document.createElement('h4');
+    southTitleEn.textContent = 'South Indian (English)';
+    southTitleEn.style.cssText = 'margin: 0 0 10px 0; color: #333; text-align: center; font-size: 16px;';
+    southWrapperEn.appendChild(southTitleEn);
+
+    const southSvgEn = createSVGElement('svg', {
+      width: southWidth,
+      height: southHeight,
+      viewBox: `0 0 ${southWidth} ${southHeight}`,
+      style: `background: ${defaultChartConfig.COLOR_BACKGROUND}; border: 8px solid ${defaultChartConfig.COLOR_AXIS}; border-radius: 12px;`
+    });
+    drawSouthIndianKundli(southSvgEn, southWidth, southHeight, birthChartData, 'en');
+    southWrapperEn.appendChild(southSvgEn);
+    chartsContainer.appendChild(southWrapperEn);
+
+    // SOUTH INDIAN (Tamil)
+    const southWrapperTa = document.createElement('div');
+    southWrapperTa.style.cssText = 'display:flex; flex-direction:column; align-items:center;';
+    const southTitleTa = document.createElement('h4');
+    southTitleTa.textContent = 'தென் இந்திய (தமிழ்)';
+    southTitleTa.style.cssText = 'margin: 0 0 10px 0; color: #333; text-align: center; font-size: 16px;';
+    southWrapperTa.appendChild(southTitleTa);
+
+    const southSvgTa = createSVGElement('svg', {
+      width: southWidth,
+      height: southHeight,
+      viewBox: `0 0 ${southWidth} ${southHeight}`,
+      style: `background: ${defaultChartConfig.COLOR_BACKGROUND}; border: 8px solid ${defaultChartConfig.COLOR_AXIS}; border-radius: 12px;`
+    });
+    drawSouthIndianKundli(southSvgTa, southWidth, southHeight, birthChartData, 'ta');
+    southWrapperTa.appendChild(southSvgTa);
+    chartsContainer.appendChild(southWrapperTa);
+
+    // NORTH INDIAN SECOND (right on wide screens)
+    const northWrapper = document.createElement('div');
+    northWrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center;';
     const northTitle = document.createElement('h4');
     northTitle.textContent = 'North Indian Style (Diamond)';
     northTitle.style.cssText = 'margin: 0 0 10px 0; color: #333; text-align: center; font-size: 16px;';
-    chartsContainer.appendChild(northTitle);
+    northWrapper.appendChild(northTitle);
 
     const northSvg = createSVGElement('svg', {
-      width: chartWidth,
-      height: chartHeight,
-      viewBox: `0 0 ${chartWidth} ${chartHeight}`,
-      style: 'background: white; border: 2px solid #ddd; border-radius: 8px;'
+      width: northWidth,
+      height: northHeight,
+      viewBox: `0 0 ${northWidth} ${northHeight}`,
+      style: `background: ${defaultChartConfig.COLOR_BACKGROUND}; border: 8px solid ${defaultChartConfig.COLOR_AXIS}; border-radius: 12px;`
     });
-
-    drawNorthIndianKundli(northSvg, chartWidth/2, chartWidth * 0.3, birthChartData);
-    chartsContainer.appendChild(northSvg);
-
-    // Create South Indian Chart
-    const southTitle = document.createElement('h4');
-    southTitle.textContent = 'South Indian Style (Grid)';
-    southTitle.style.cssText = 'margin: 0 0 10px 0; color: #333; text-align: center; font-size: 16px;';
-    chartsContainer.appendChild(southTitle);
-
-    const southSvg = createSVGElement('svg', {
-      width: chartWidth,
-      height: chartHeight,
-      viewBox: `0 0 ${chartWidth} ${chartHeight}`,
-      style: 'background: white; border: 2px solid #ddd; border-radius: 8px;'
-    });
-
-    drawSouthIndianKundli(southSvg, chartWidth, chartHeight, birthChartData);
-    chartsContainer.appendChild(southSvg);
+    drawNorthIndianKundli(northSvg, northWidth/2, northWidth * 0.3, birthChartData);
+    northWrapper.appendChild(northSvg);
+    chartsContainer.appendChild(northWrapper);
 
     container.appendChild(chartsContainer);
 
@@ -212,9 +270,9 @@ const drawNorthIndianKundli = (svg, center, boxSize, birthChartData) => {
     y: center - size,
     width: size * 2,
     height: size * 2,
-    fill: 'white',
-    stroke: '#000',
-    'stroke-width': '3'
+    fill: defaultChartConfig.COLOR_BACKGROUND,
+    stroke: defaultChartConfig.COLOR_AXIS,
+    'stroke-width': '6'
   });
   svg.appendChild(outerSquare);
 
@@ -224,7 +282,7 @@ const drawNorthIndianKundli = (svg, center, boxSize, birthChartData) => {
   const diamond = createSVGElement('path', {
     d: diamondPath,
     fill: 'none',
-    stroke: '#000',
+    stroke: defaultChartConfig.COLOR_AXIS,
     'stroke-width': '3'
   });
   svg.appendChild(diamond);
@@ -243,7 +301,7 @@ const drawNorthIndianKundli = (svg, center, boxSize, birthChartData) => {
       y1: line.y1,
       x2: line.x2,
       y2: line.y2,
-      stroke: '#000',
+      stroke: defaultChartConfig.COLOR_AXIS,
       'stroke-width': '2'
     }));
   });
@@ -282,15 +340,53 @@ const drawNorthIndianKundli = (svg, center, boxSize, birthChartData) => {
       y: label.y,
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
-      'font-size': '10',
+      'font-size': '13',
       'font-weight': 'bold',
-      fill: '#666'
+      fill: defaultChartConfig.COLOR_SIGNS,
+      stroke: '#fff',
+      'stroke-width': '2',
+      'stroke-opacity': '0.9',
+      style: 'paint-order: stroke fill'
     });
     houseText.textContent = label.house;
     svg.appendChild(houseText);
   });
 
   // Place planets in North Indian houses
+  // Center title and nakshatra
+  const title = createSVGElement('text', {
+    x: center,
+    y: center - 10,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'middle',
+    'font-size': '16',
+    'font-weight': '700',
+    fill: '#7f7f7f',
+    stroke: '#fff',
+    'stroke-width': '1.5',
+    'stroke-opacity': '0.8',
+    style: 'paint-order: stroke fill'
+  });
+  title.textContent = 'Rasi Chart';
+  svg.appendChild(title);
+
+  const nakName = birthChartData?.nakshatras?.Moon?.name || '';
+  const nakText = createSVGElement('text', {
+    x: center,
+    y: center + 12,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'middle',
+    'font-size': '20',
+    'font-weight': '800',
+    fill: '#e67e22',
+    stroke: '#fff',
+    'stroke-width': '1.5',
+    'stroke-opacity': '0.6',
+    style: 'paint-order: stroke fill'
+  });
+  nakText.textContent = nakName;
+  svg.appendChild(nakText);
+
   placePlanetsInNorthIndianHouses(svg, birthChartData, center, size);
 };
 
@@ -325,87 +421,68 @@ const placePlanetsInNorthIndianHouses = (svg, birthChartData, center, boxSize) =
     });
   });
 
-  // Define house positions for planet placement in diamond layout with better spacing
+  // Anchor planets to the same positions where house numbers are drawn
   const housePositions = [
-    // House 1 - Left point (Ascendant area)
-    { x: center - size + 25, y: center + 10, house: 1, width: 40 },
-    // House 2 - Top-left triangle
-    { x: center - size/2 - 15, y: center - size/2 + 10, house: 2, width: 35 },
-    // House 3 - Top-left of top point
-    { x: center - 35, y: center - size + 30, house: 3, width: 30 },
-    // House 4 - Top point
-    { x: center - 15, y: center - size + 30, house: 4, width: 30 },
-    // House 5 - Top-right of top point
-    { x: center + 5, y: center - size + 30, house: 5, width: 30 },
-    // House 6 - Top-right triangle
-    { x: center + size/2 - 20, y: center - size/2 + 10, house: 6, width: 35 },
-    // House 7 - Right point
-    { x: center + size - 65, y: center + 10, house: 7, width: 40 },
-    // House 8 - Bottom-right triangle
-    { x: center + size/2 - 20, y: center + size/2 - 10, house: 8, width: 35 },
-    // House 9 - Bottom-right of bottom point
-    { x: center + 5, y: center + size - 55, house: 9, width: 30 },
-    // House 10 - Bottom point
-    { x: center - 15, y: center + size - 55, house: 10, width: 30 },
-    // House 11 - Bottom-left of bottom point
-    { x: center - 35, y: center + size - 55, house: 11, width: 30 },
-    // House 12 - Bottom-left triangle
-    { x: center - size/2 - 15, y: center + size/2 - 10, house: 12, width: 35 }
+    { house: 1,  x: center - size + 22, y: center },
+    { house: 2,  x: center - size/2,    y: center - size/2 },
+    { house: 3,  x: center - 28,        y: center - size + 26 },
+    { house: 4,  x: center,             y: center - size + 26 },
+    { house: 5,  x: center + 28,        y: center - size + 26 },
+    { house: 6,  x: center + size/2,    y: center - size/2 },
+    { house: 7,  x: center + size - 22, y: center },
+    { house: 8,  x: center + size/2,    y: center + size/2 },
+    { house: 9,  x: center + 22,        y: center + size - 26 },
+    { house: 10, x: center,             y: center + size - 26 },
+    { house: 11, x: center - 22,        y: center + size - 26 },
+    { house: 12, x: center - size/2,    y: center + size/2 }
   ];
 
   // Place planets in houses with better positioning and details
   housePositions.forEach(housePos => {
     const planetsInHouse = planetsByHouse[housePos.house] || [];
 
-    // If multiple planets, arrange them more compactly
-    if (planetsInHouse.length > 2) {
-      // Compact layout for many planets
-      planetsInHouse.forEach((planet, index) => {
-        const row = Math.floor(index / 2);
-        const col = index % 2;
+    // Arrange planets in a 2-column grid to avoid overlaps
+    const columns = 1; // stack vertically for clarity
+    const rowHeight = 16;
+    planetsInHouse.forEach((planet, index) => {
+      const row = Math.floor(index / columns);
+      const col = index % columns;
+      const px = housePos.x - 10 + (col * 28);
+      const py = housePos.y + (row * rowHeight);
 
-        const planetText = createSVGElement('text', {
-          x: housePos.x + (col * 20),
-          y: housePos.y + (row * 12),
-          'text-anchor': 'start',
-          'dominant-baseline': 'middle',
-          'font-size': '9',
-          'font-weight': 'bold',
-          fill: defaultChartConfig.PLANET_COLORS[planet.name] || '#333'
-        });
-        planetText.textContent = `${planet.symbol}${planet.retrograde ? 'R' : ''}`;
-        svg.appendChild(planetText);
+      const planetText = createSVGElement('text', {
+        x: px,
+        y: py,
+        'text-anchor': 'start',
+        'dominant-baseline': 'middle',
+        'font-size': '13',
+        'font-weight': 'bold',
+        fill: defaultChartConfig.PLANET_COLORS[planet.name] || '#333',
+        stroke: '#fff',
+        'stroke-width': '1.5',
+        'stroke-opacity': '0.8',
+        style: 'paint-order: stroke fill'
       });
-    } else {
-      // Normal layout for 1-2 planets
-      planetsInHouse.forEach((planet, index) => {
-        // Planet symbol
-        const planetText = createSVGElement('text', {
-          x: housePos.x,
-          y: housePos.y + (index * 14),
-          'text-anchor': 'start',
-          'dominant-baseline': 'middle',
-          'font-size': '10',
-          'font-weight': 'bold',
-          fill: defaultChartConfig.PLANET_COLORS[planet.name] || '#333'
-        });
-        planetText.textContent = `${planet.symbol}${planet.retrograde ? 'R' : ''}`;
-        svg.appendChild(planetText);
+      const shortLabel = planetShortLabelsEn[planet.name] || planet.symbol;
+      planetText.textContent = `${shortLabel}${planet.retrograde ? 'R' : ''}`;
+      svg.appendChild(planetText);
 
-        // Planet degree (smaller text next to symbol)
-        const degreeText = createSVGElement('text', {
-          x: housePos.x + 22,
-          y: housePos.y + (index * 14),
-          'text-anchor': 'start',
-          'dominant-baseline': 'middle',
-          'font-size': '7',
-          'font-weight': 'normal',
-          fill: '#666'
-        });
-        degreeText.textContent = `${planet.degree}°`;
-        svg.appendChild(degreeText);
+      const degreeText = createSVGElement('text', {
+        x: px + 26,
+        y: py,
+        'text-anchor': 'start',
+        'dominant-baseline': 'middle',
+        'font-size': '10',
+        'font-weight': 'normal',
+        fill: '#555',
+        stroke: '#fff',
+        'stroke-width': '1',
+        'stroke-opacity': '0.7',
+        style: 'paint-order: stroke fill'
       });
-    }
+      degreeText.textContent = `${planet.degree}°`;
+      svg.appendChild(degreeText);
+    });
   });
 
   // Add ascendant marker in house 1
@@ -425,12 +502,26 @@ const placePlanetsInNorthIndianHouses = (svg, birthChartData, center, boxSize) =
 /**
  * Draw the South Indian style grid Kundli structure
  */
-const drawSouthIndianKundli = (svg, width, height, birthChartData) => {
-  const margin = 50;
+const drawSouthIndianKundli = (svg, width, height, birthChartData, locale = 'en') => {
+  const margin = 40;
   const gridWidth = width - (margin * 2);
   const gridHeight = height - (margin * 2);
   const cellWidth = gridWidth / 4;
   const cellHeight = gridHeight / 4;
+
+  // Draw the ornate outer frame (approximation)
+  const frame = createSVGElement('rect', {
+    x: margin - 20,
+    y: margin - 20,
+    width: gridWidth + 40,
+    height: gridHeight + 40,
+    rx: 8,
+    ry: 8,
+    fill: 'none',
+    stroke: defaultChartConfig.COLOR_AXIS,
+    'stroke-width': '6'
+  });
+  svg.appendChild(frame);
 
   // Draw the 4x4 grid
   for (let row = 0; row < 4; row++) {
@@ -444,13 +535,42 @@ const drawSouthIndianKundli = (svg, width, height, birthChartData) => {
         y: y,
         width: cellWidth,
         height: cellHeight,
-        fill: 'white',
-        stroke: '#000',
+        fill: defaultChartConfig.COLOR_BACKGROUND,
+        stroke: defaultChartConfig.COLOR_AXIS,
         'stroke-width': '2'
       });
       svg.appendChild(rect);
     }
   }
+
+  // Title and Nakshatra in center
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const title = createSVGElement('text', {
+    x: centerX,
+    y: centerY - 10,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'middle',
+    'font-size': '14',
+    'font-weight': '700',
+    fill: '#9b9b9b'
+  });
+  title.textContent = locale === 'ta' ? rasiChartTitle.ta : rasiChartTitle.en;
+  svg.appendChild(title);
+
+  // Moon nakshatra in bold orange
+  const nakName = birthChartData?.nakshatras?.Moon?.name || '';
+  const nakText = createSVGElement('text', {
+    x: centerX,
+    y: centerY + 18,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'middle',
+    'font-size': '18',
+    'font-weight': '800',
+    fill: '#e67e22'
+  });
+  nakText.textContent = locale === 'ta' ? (birthChartData?.nakshatras?.Moon?.name_ta || nakName) : nakName;
+  svg.appendChild(nakText);
 
   // South Indian house mapping (fixed positions - houses don't rotate)
   const southIndianHouses = [
@@ -476,41 +596,41 @@ const drawSouthIndianKundli = (svg, width, height, birthChartData) => {
 
       // Add house number
       const houseText = createSVGElement('text', {
-        x: x + 5,
-        y: y + 15,
+        x: x + 6,
+        y: y + 18,
         'text-anchor': 'start',
         'dominant-baseline': 'middle',
-        'font-size': '10',
+        'font-size': '11',
         'font-weight': 'bold',
-        fill: '#666'
+        fill: defaultChartConfig.COLOR_SIGNS
       });
       houseText.textContent = cell.house;
       svg.appendChild(houseText);
 
       // Add sign name (smaller text)
-      const signName = getSignName(cell.house);
+      const signName = locale === 'ta' ? getSignNameTa(cell.house) : getSignName(cell.house);
       const signText = createSVGElement('text', {
-        x: x + 20,
-        y: y + 15,
+        x: x + 26,
+        y: y + 18,
         'text-anchor': 'start',
         'dominant-baseline': 'middle',
-        'font-size': '8',
+        'font-size': '9',
         'font-weight': 'normal',
         fill: '#888'
       });
-      signText.textContent = signName.substring(0, 3); // First 3 letters
+      signText.textContent = locale === 'ta' ? signName : signName.substring(0, 3);
       svg.appendChild(signText);
     }
   });
 
   // Place planets in South Indian houses
-  placePlanetsInSouthIndianHouses(svg, birthChartData, margin, cellWidth, cellHeight, southIndianHouses);
+  placePlanetsInSouthIndianHouses(svg, birthChartData, margin, cellWidth, cellHeight, southIndianHouses, locale);
 };
 
 /**
  * Place planets in South Indian houses (based on signs, not relative houses)
  */
-const placePlanetsInSouthIndianHouses = (svg, birthChartData, margin, cellWidth, cellHeight, houseMapping) => {
+const placePlanetsInSouthIndianHouses = (svg, birthChartData, margin, cellWidth, cellHeight, houseMapping, locale = 'en') => {
   const { planetaryPositions, ascendant } = birthChartData;
 
   // In South Indian style, planets are placed by their zodiac signs (1-12), not houses
@@ -538,7 +658,7 @@ const placePlanetsInSouthIndianHouses = (svg, birthChartData, margin, cellWidth,
   }
   planetsBySign[ascendantSign].push({
     name: 'ASC',
-    symbol: 'ASC',
+    symbol: locale === 'ta' ? 'ல' : 'Lag',
     degree: Math.floor(ascendant.longitude % 30),
     retrograde: false
   });
@@ -570,29 +690,30 @@ const placePlanetsInSouthIndianHouses = (svg, birthChartData, margin, cellWidth,
       const y = margin + (cell.row * cellHeight);
 
       planetsInSign.forEach((planet, index) => {
-        const yPos = y + 35 + (index * 14);
+        const yPos = y + 40 + (index * 16);
 
         // Planet symbol
         const planetText = createSVGElement('text', {
-          x: x + 8,
+          x: x + 10,
           y: yPos,
           'text-anchor': 'start',
           'dominant-baseline': 'middle',
-          'font-size': '10',
+          'font-size': '12',
           'font-weight': 'bold',
           fill: planet.name === 'ASC' ? '#ff6b35' : (defaultChartConfig.PLANET_COLORS[planet.name] || '#333')
         });
-        planetText.textContent = `${planet.symbol}${planet.retrograde ? 'R' : ''}`;
+        const shortLabel = locale === 'ta' ? (planetShortLabelsTa[planet.name] || planet.symbol) : (planetShortLabelsEn[planet.name] || planet.symbol);
+        planetText.textContent = `${shortLabel}${planet.retrograde ? 'R' : ''}`;
         svg.appendChild(planetText);
 
         // Planet degree (if not ASC)
         if (planet.name !== 'ASC') {
           const degreeText = createSVGElement('text', {
-            x: x + 35,
+            x: x + 38,
             y: yPos,
             'text-anchor': 'start',
             'dominant-baseline': 'middle',
-            'font-size': '7',
+            'font-size': '9',
             'font-weight': 'normal',
             fill: '#666'
           });

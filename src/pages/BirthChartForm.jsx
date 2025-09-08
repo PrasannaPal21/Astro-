@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Country, State, City } from 'country-state-city';
 import { geocodeLocation, geocodeLocationFallback } from '../lib/geocoding';
 import { calculateBirthChart, validateBirthData } from '../lib/jyotishCalculations';
 import ChartDisplay from '../components/ChartDisplay';
@@ -8,42 +7,35 @@ import '../styles/BirthChart.css';
 const BirthChartForm = () => {
   const [formData, setFormData] = useState({
     name: '',
-    birthDate: '',
-    birthTime: '',
-    country: '',
-    state: '',
-    city: ''
+    gender: 'Male',
+    day: '',
+    month: '',
+    year: '',
+    hour: '',
+    minute: '',
+    ampm: 'AM',
+    birthPlace: '',
+    
   });
-
-  const [countries, setCountries] = useState([]);
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [chartData, setChartData] = useState(null);
   const [coordinates, setCoordinates] = useState(null);
 
-  useEffect(() => {
-    setCountries(Country.getAllCountries());
-  }, []);
+  const formatDateTimeFromForm = (data) => {
+    const yyyy = String(data.year || '').padStart(4, '0');
+    const mm = String(data.month || '').padStart(2, '0');
+    const dd = String(data.day || '').padStart(2, '0');
+    const hour12 = parseInt(data.hour || '0', 10);
+    const minute = String(data.minute || '').padStart(2, '0');
+    let hour24 = hour12 % 12;
+    if ((data.ampm || 'AM') === 'PM') hour24 += 12;
+    const timeStr = `${String(hour24).padStart(2, '0')}:${minute}`;
+    const birthDateStr = `${yyyy}-${mm}-${dd}`;
+    return { birthDateStr, timeStr };
+  };
 
-  useEffect(() => {
-    if (formData.country) {
-      setStates(State.getStatesOfCountry(formData.country));
-      setFormData(prev => ({ ...prev, state: '', city: '' }));
-    } else {
-      setStates([]);
-    }
-  }, [formData.country]);
-
-  useEffect(() => {
-    if (formData.country && formData.state) {
-      setCities(City.getCitiesOfState(formData.country, formData.state));
-      setFormData(prev => ({ ...prev, city: '' }));
-    } else {
-      setCities([]);
-    }
-  }, [formData.country, formData.state]);
+  useEffect(() => {}, []);
 
   // Clear error when form data changes
   useEffect(() => {
@@ -65,10 +57,13 @@ const BirthChartForm = () => {
 
     try {
       // Validate form data
-      if (!formData.name || !formData.birthDate || !formData.birthTime ||
-          !formData.country || !formData.state || !formData.city) {
+      if (!formData.name || !formData.day || !formData.month || !formData.year ||
+          !formData.hour || !formData.minute || !formData.birthPlace) {
         throw new Error('Please fill in all required fields');
       }
+
+      // Build date and time strings
+      const { birthDateStr, timeStr } = formatDateTimeFromForm(formData);
 
       // Step 1: Geocode the location
       console.log('Geocoding location...');
@@ -77,17 +72,13 @@ const BirthChartForm = () => {
       try {
         // Try Google Maps first
         locationCoords = await geocodeLocation({
-          country: countries.find(c => c.isoCode === formData.country)?.name,
-          state: states.find(s => s.isoCode === formData.state)?.name,
-          city: formData.city
+          city: formData.birthPlace
         });
       } catch (geocodeError) {
         console.warn('Google Maps geocoding failed, trying fallback:', geocodeError);
         // Fallback to OpenStreetMap
         locationCoords = await geocodeLocationFallback({
-          country: countries.find(c => c.isoCode === formData.country)?.name,
-          state: states.find(s => s.isoCode === formData.state)?.name,
-          city: formData.city
+          city: formData.birthPlace
         });
       }
 
@@ -96,8 +87,8 @@ const BirthChartForm = () => {
 
       // Step 2: Prepare birth data for calculations
       const birthData = {
-        date: formData.birthDate,
-        time: formData.birthTime,
+        date: birthDateStr,
+        time: timeStr,
         lat: locationCoords.lat,
         lng: locationCoords.lng,
         timezone: 0 // You might want to calculate this based on location
@@ -173,74 +164,96 @@ const BirthChartForm = () => {
           </div>
         )}
 
+        <div className={`chart-layout ${chartData ? 'has-chart' : ''}`}>
         <form onSubmit={handleSubmit} className="birth-chart-form">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="form-field"
-          />
+          <div className="form-row">
+            <label className="field-label">Name & Gender</label>
+            <div className="field-group">
+              <input
+                type="text"
+                name="name"
+                placeholder="Your name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="form-field"
+              />
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="form-field small"
+              >
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
 
-          <input
-            type="date"
-            name="birthDate"
-            value={formData.birthDate}
-            onChange={handleChange}
-            required
-            className="form-field"
-          />
+          <div className="form-row">
+            <label className="field-label">Date & Time of Birth</label>
+            <div className="field-group date-time">
+              <input type="number" name="day" placeholder="DD" value={formData.day} onChange={handleChange} required className="form-field tiny" min="1" max="31" />
+              <input type="number" name="month" placeholder="MM" value={formData.month} onChange={handleChange} required className="form-field tiny" min="1" max="12" />
+              <input type="number" name="year" placeholder="YYYY" value={formData.year} onChange={handleChange} required className="form-field small" min="1900" max="2100" />
+              <input type="number" name="hour" placeholder="HH" value={formData.hour} onChange={handleChange} required className="form-field tiny" min="1" max="12" />
+              <input type="number" name="minute" placeholder="MM" value={formData.minute} onChange={handleChange} required className="form-field tiny" min="0" max="59" />
+              <div className="ampm-toggle">
+                <label>
+                  <input type="radio" name="ampm" value="AM" checked={formData.ampm === 'AM'} onChange={handleChange} />
+                  <span>AM</span>
+                </label>
+                <label>
+                  <input type="radio" name="ampm" value="PM" checked={formData.ampm === 'PM'} onChange={handleChange} />
+                  <span>PM</span>
+                </label>
+              </div>
+            </div>
+          </div>
 
-          <input
-            type="time"
-            name="birthTime"
-            value={formData.birthTime}
-            onChange={handleChange}
-            required
-            className="form-field"
-          />
+          <div className="form-row">
+            <label className="field-label">Birth Place</label>
+            <div className="field-group">
+              <input
+                type="text"
+                name="birthPlace"
+                placeholder="City, State, Country"
+                value={formData.birthPlace}
+                onChange={handleChange}
+                required
+                className="form-field"
+              />
+            </div>
+          </div>
 
-          <select name="country" value={formData.country} onChange={handleChange} className="form-field" required>
-            <option value="">Select Country...</option>
-            {countries.map(country => (
-              <option key={country.isoCode} value={country.isoCode}>{country.name}</option>
-            ))}
-          </select>
+          
 
-          <select name="state" value={formData.state} onChange={handleChange} className="form-field" required disabled={!formData.country}>
-            <option value="">Select State...</option>
-            {states.map(state => (
-              <option key={state.isoCode} value={state.isoCode}>{state.name}</option>
-            ))}
-          </select>
-
-          <select name="city" value={formData.city} onChange={handleChange} className="form-field" required disabled={!formData.state}>
-            <option value="">Select City...</option>
-            {cities.map(city => (
-              <option key={city.name} value={city.name}>{city.name}</option>
-            ))}
-          </select>
-
+          <div className="form-toolbar"></div>
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Generating Chart...' : 'Generate Birth Chart'}
+            {loading ? 'Generating...' : 'Show my horoscope'}
           </button>
         </form>
 
         {/* Chart Display Area */}
-        {chartData && coordinates && (
-          <ChartDisplay
-            chartData={chartData}
-            birthInfo={{
-              name: formData.name,
-              date: formData.birthDate,
-              time: formData.birthTime,
-              location: coordinates.formatted_address,
-              coordinates: coordinates
-            }}
-          />
-        )}
+        {chartData && coordinates && (() => {
+          const { birthDateStr, timeStr } = formatDateTimeFromForm(formData);
+          return (
+            <div className="chart-panel">
+              <ChartDisplay
+                chartData={chartData}
+                birthInfo={{
+                  name: formData.name,
+                  date: birthDateStr,
+                  time: timeStr,
+                  location: coordinates.formatted_address,
+                  coordinates: coordinates
+                }}
+              />
+            </div>
+          );
+        })()}
+        </div>
       </div>
 
       <style>{`
