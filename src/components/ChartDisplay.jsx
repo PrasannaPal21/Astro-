@@ -39,6 +39,7 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
     };
   }, [chartData]);
 
+
   if (!chartData) {
     return null;
   }
@@ -93,6 +94,7 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
           </div>
         </div>
       )}
+
 
       {/* Birth info moved below charts per UI request */}
       {birthInfo && (
@@ -251,6 +253,7 @@ const ChartDisplay = ({ chartData, birthInfo, className = '' }) => {
           font-family: monospace;
           font-size: 0.9rem;
         }
+
 
         @media (max-width: 768px) {
           .chart-display {
