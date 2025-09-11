@@ -606,20 +606,6 @@ const drawSouthIndianKundli = (svg, width, height, birthChartData, locale = 'en'
       });
       houseText.textContent = cell.house;
       svg.appendChild(houseText);
-
-      // Add sign name (smaller text)
-      const signName = locale === 'ta' ? getSignNameTa(cell.house) : getSignName(cell.house);
-      const signText = createSVGElement('text', {
-        x: x + 26,
-        y: y + 18,
-        'text-anchor': 'start',
-        'dominant-baseline': 'middle',
-        'font-size': '9',
-        'font-weight': 'normal',
-        fill: '#888'
-      });
-      signText.textContent = locale === 'ta' ? signName : signName.substring(0, 3);
-      svg.appendChild(signText);
     }
   });
 
